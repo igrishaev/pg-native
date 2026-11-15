@@ -36,5 +36,15 @@ typedef (char *) (*FN_L_LS)(long l, char *s);
 
 JNIEXPORT jstring JNICALL Java_pg_jni_Native_call_1s_1ls
   (JNIEnv *env, jclass jcls, jlong jf, jlong jl, jstring js) {
+    FN_L_LS f = (FN_L_LS *) jf;
 
+    char *s = JNI_CALL(env, GetStringUTFChars, js, NULL);
+    if (s) {
+        f(s);
+        JNI_CALL(env, ReleaseStringUTFChars, js, s);
+    } else {
+
+    }
+
+    return f(l, s);
 }
