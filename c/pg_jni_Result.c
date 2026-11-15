@@ -32,8 +32,22 @@ JNIEXPORT jint JNICALL Java_pg_jni_Result_getResultInfo
 }
 
 JNIEXPORT jint JNICALL Java_pg_jni_Result_getFieldInfo
-  (JNIEnv *env, jclass jcls, jlong jresult, jint jrow, jint jcol) {
+  (JNIEnv *env, jclass jcls, jlong jresult, jint jrow, jint jcol, jlong jbb) {
     PGresult *result = (PGresult *) jresult;
+    char *bb = (char *) jbb;
+
+    Oid colType = PQftype(result, jcol);
+    int colFormat = PQfformat(result, jcol);
+    int size = PQgetlength(result, jrow, jcol);
+    int isNull = PQgetisnull(result, jrow, jcol);
+    char *value = PQgetvalue(result, jrow, jcol);
+
+    bb = bb_put_int(bb, colType);
+    bb = bb_put_int(bb, colFormat);
+    bb = bb_put_int(bb, size);
+    bb = bb_put_int(bb, isNull);
+    bb = bb_put_char(bb, value);
+
     return 1;
 }
 

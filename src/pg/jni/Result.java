@@ -52,21 +52,28 @@ public class Result implements AutoCloseable, Iterable<Row> {
 
     private static native int getResultInfo(long ptr, long bb);
     protected static native int PQresultStatus(long result);
-    private static native int getFieldInfo(long ptr, int row, int col);
+    private static native int getFieldInfo(long ptr, int row, int col, long bb);
 
     public String getValue(int row, int col) {
-        arena.boNative();
-        int res = getFieldInfo(ptr, row, col);
+        if (row >= rowCount) {
+            throw Err.error("wrong row: %s", row);
+        }
+        if (col >= nFields) {
+            throw Err.error("wrong column: %s", col);
+        }
+        int res = getFieldInfo(ptr, row, col, arena.ptr);
         if (res == 0) {
             throw new RuntimeException("failed to get row/col value");
         }
-        int oid = arena.getInt();
-        int format = arena.getInt();
+        arena.clear().boNative();
+
+        int colType = arena.getInt();
+        int colFormat = arena.getInt();
+        int size = arena.getInt();
         int isNull = arena.getInt();
-        int len = arena.getInt();
-        byte[] value = new byte[len];
-        arena.get(value);
-        return new String(value);
+        String value = arena.getCString();
+
+        return value;
     }
 
     @Override
