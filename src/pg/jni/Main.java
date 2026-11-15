@@ -7,7 +7,7 @@ public class Main {
     public static void main(String... args) {
         try (Connection conn = Connection.make(connStr)) {
             System.out.println(conn);
-            System.out.println(conn.exec("select 1 as num"));
+            System.out.println(conn.exec("select 1 as one, '2' as two"));
         }
     }
 

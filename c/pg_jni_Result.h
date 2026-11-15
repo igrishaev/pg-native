@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     pg_jni_Result
  * Method:    getResultInfo
- * Signature: (J)I
+ * Signature: (JJ)I
  */
 JNIEXPORT jint JNICALL Java_pg_jni_Result_getResultInfo
-  (JNIEnv *, jclass, jlong);
+  (JNIEnv *, jclass, jlong, jlong);
 
 /*
  * Class:     pg_jni_Result

@@ -50,10 +50,6 @@ public class Connection implements AutoCloseable {
         int status = Result.PQresultStatus(resPtr);
         String msg = PQerrorMessage(ptr);
 
-        System.out.println(resPtr);
-        System.out.println(status);
-        System.out.println(msg);
-
         return Result.make(resPtr, arena);
     }
 

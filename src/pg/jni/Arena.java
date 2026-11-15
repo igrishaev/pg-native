@@ -3,6 +3,7 @@ package pg.jni;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Arena {
 
@@ -12,7 +13,7 @@ public class Arena {
 
     private final ByteBuffer bb;
     private final int bbSize;
-    private final long bbAddr;
+    protected final long ptr;
     private final ByteOrder BO_JVM;
     private final ByteOrder BO_JNI;
 
@@ -24,10 +25,10 @@ public class Arena {
         NULL = getNull();
     }
 
-    private Arena(ByteBuffer bb, int bbSize, long bbAddr, ByteOrder BO_JVM, ByteOrder BO_JNI) {
+    private Arena(ByteBuffer bb, int bbSize, long ptr, ByteOrder BO_JVM, ByteOrder BO_JNI) {
         this.bb = bb;
         this.bbSize = bbSize;
-        this.bbAddr = bbAddr;
+        this.ptr = ptr;
         this.BO_JVM = BO_JVM;
         this.BO_JNI = BO_JNI;
     }
@@ -36,13 +37,13 @@ public class Arena {
 
     public static Arena make(int size) {
         final ByteBuffer bb = ByteBuffer.allocateDirect(size);
-        final long bbAddr = getBBAddr(bb);
+        final long ptr = getBBAddr(bb);
         ByteOrder BO_JVM = bb.order();
         ByteOrder BO_JNI = ByteOrder.nativeOrder();
-        if (bbAddr == NULL) {
+        if (ptr == NULL) {
             throw new RuntimeException("failed to get a native address of a byte buffer");
         }
-        return new Arena(bb, size, bbAddr, BO_JVM, BO_JNI);
+        return new Arena(bb, size, ptr, BO_JVM, BO_JNI);
     }
 
     @Override
@@ -73,13 +74,13 @@ public class Arena {
     public long intPtr(int value) {
         int pos = bb.position();
         bb.putInt(value);
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long longPtr(long value) {
         int pos = bb.position();
         bb.putLong(value);
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long intArrayPtr(int[] values) {
@@ -87,7 +88,7 @@ public class Arena {
         for (int i: values) {
             bb.putInt(i);
         }
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long longArrayPtr(long[] values) {
@@ -95,7 +96,7 @@ public class Arena {
         for (long l: values) {
             bb.putLong(l);
         }
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long charPtr(String s) {
@@ -103,7 +104,7 @@ public class Arena {
         byte[] buf = s.getBytes(StandardCharsets.UTF_8);
         bb.put(buf);
         bb.put((byte) 0);
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long stringArrayPtr(String[] arr) {
@@ -121,9 +122,9 @@ public class Arena {
                 bb.put(buf);
                 bb.put((byte) 0);
             }
-            bb.putLong(pos + i * LEN_LONG, bbAddr + posTmp);
+            bb.putLong(pos + i * LEN_LONG, ptr + posTmp);
         }
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public long byteArray2Ptr(byte[][] arr) {
@@ -140,9 +141,9 @@ public class Arena {
                 bb.put(buf);
                 bb.put((byte) 0);
             }
-            bb.putLong(pos + i * LEN_LONG, bbAddr + posTmp);
+            bb.putLong(pos + i * LEN_LONG, ptr + posTmp);
         }
-        return bbAddr + pos;
+        return ptr + pos;
     }
 
     public int getInt() {
@@ -151,6 +152,32 @@ public class Arena {
 
     public void get(byte[] buf) {
         bb.get(buf);
+    }
+
+    public String getCString() {
+        int pos = bb.position();
+        if (bb.get(pos) == 0) {
+            bb.get();
+            return null;
+        }
+        int len = 0;
+        for (int i = pos; i < bb.limit(); i++) {
+            if (bb.get(pos + len) == 0) {
+                break;
+            }
+            len++;
+        }
+        ByteBuffer slice = bb.slice(pos, len);
+        bb.position(pos + len + 1);
+        return StandardCharsets.UTF_8.decode(slice).toString();
+    }
+
+    @SuppressWarnings("unused")
+    public Arena debug(final int len) {
+        final byte[] ba = new byte[len];
+        bb.get(0, ba);
+        System.out.println(Arrays.toString(ba));
+        return this;
     }
 
     public Arena skip(int n) {
