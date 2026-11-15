@@ -6,6 +6,10 @@ import java.nio.charset.StandardCharsets;
 
 public class Arena {
 
+    static {
+        Native.loadLib();
+    }
+
     private final ByteBuffer bb;
     private final int bbSize;
     private final long bbAddr;

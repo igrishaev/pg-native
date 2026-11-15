@@ -1,9 +1,12 @@
 package pg.jni;
 
 import java.util.List;
-import java.util.Objects;
 
 public class Connection implements AutoCloseable {
+
+    static {
+        Native.loadLib();
+    }
 
     private final Arena arena;
     private final long ptr;
@@ -18,6 +21,7 @@ public class Connection implements AutoCloseable {
     }
 
     private static native long PQconnectdb(long conninfo);
+    private static native int PQstatus(long conn);
 
     public static Connection make(String connInfo) {
         Arena arena = Arena.make(64000);
@@ -25,12 +29,16 @@ public class Connection implements AutoCloseable {
         if (ptr == NULL) {
             throw new RuntimeException("failed to connect");
         }
+        int status = PQstatus(ptr);
+        if (status != 0) {
+            throw new RuntimeException("bad connection status: " + status);
+        }
         return new Connection(arena, ptr, false);
     }
 
     private static native long PQexecParams(long conn, long command, int nParams, long paramTypes, long paramValues, long paramLengths, long paramFormats, int resultFormat);
 
-    public Result execParams(String sql, List<Objects> params) {
+    public Result execParams(String sql, List<Object> params) {
         int len = params.size();
         int[] paramTypes = new int[len];
         int[] paramLengths = new int[len];

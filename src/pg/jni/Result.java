@@ -4,6 +4,10 @@ import java.util.Iterator;
 
 public class Result implements AutoCloseable, Iterable<Row> {
 
+    static {
+        Native.loadLib();
+    }
+
     private final long ptr;
     private boolean isClosed;
     private final Arena arena;
