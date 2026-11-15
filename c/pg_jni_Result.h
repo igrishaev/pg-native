@@ -17,6 +17,14 @@ JNIEXPORT jint JNICALL Java_pg_jni_Result_getResultInfo
 
 /*
  * Class:     pg_jni_Result
+ * Method:    PQresultStatus
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result_PQresultStatus
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Result
  * Method:    getFieldInfo
  * Signature: (JII)I
  */

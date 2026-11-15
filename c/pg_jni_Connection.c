@@ -1,4 +1,5 @@
 #include <jni.h>
+#include "macros.h"
 #include "libpq-fe.h"
 
 JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQconnectdb
@@ -10,6 +11,23 @@ JNIEXPORT jint JNICALL Java_pg_jni_Connection_PQstatus
   (JNIEnv *env, jclass jcls, jlong jconn) {
     PGconn *conn = (PGconn *) jconn;
     return PQstatus(conn);
+}
+
+JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
+  (JNIEnv *env, jclass jcls, jlong jconn) {
+    PGconn *conn = (PGconn *) jconn;
+    char *msg = PQerrorMessage(conn);
+    if (msg) {
+        return JNI_CALL(env, NewStringUTF, msg);
+    } else {
+        return NULL;
+    }
+}
+
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexec
+  (JNIEnv *env, jclass jcls, jlong jconn, jlong jsql) {
+    PGconn *conn = (PGconn *) jconn;
+    return (jlong) PQexec(conn, (char *) jsql);
 }
 
 JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexecParams

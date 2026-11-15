@@ -22,6 +22,7 @@ public class Connection implements AutoCloseable {
 
     private static native long PQconnectdb(long conninfo);
     private static native int PQstatus(long conn);
+    protected static native String PQerrorMessage(long conn);
 
     public static Connection make(String connInfo) {
         Arena arena = Arena.make(64000);
@@ -34,6 +35,26 @@ public class Connection implements AutoCloseable {
             throw new RuntimeException("bad connection status: " + status);
         }
         return new Connection(arena, ptr, false);
+    }
+
+    private static native long PQexec(long conn, long cmd);
+
+    public Result exec(String sql) {
+        arena.clear();
+        long sqlPtr = arena.charPtr(sql);
+        long resPtr = PQexec(ptr, sqlPtr);
+        if (resPtr == NULL) {
+            throw new RuntimeException("failed to execute");
+        }
+
+        int status = Result.PQresultStatus(resPtr);
+        String msg = PQerrorMessage(ptr);
+
+        System.out.println(resPtr);
+        System.out.println(status);
+        System.out.println(msg);
+
+        return Result.make(resPtr, arena);
     }
 
     private static native long PQexecParams(long conn, long command, int nParams, long paramTypes, long paramValues, long paramLengths, long paramFormats, int resultFormat);

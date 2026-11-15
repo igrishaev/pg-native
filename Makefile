@@ -28,12 +28,12 @@ JAVA_INC = \
 	-I${JAVA_HOME}/include/win32 \
 	-I${JAVA_HOME}/include/linux
 
-all: headers $(SHARED_LIB)
+all: headers $(SHARED_LIB) sync-resources
 
 CLASSES_DIR = target/production/pg-native
 
 sync-resources:
-	cp resources/* $(CLASSES_DIR)
+	cp resources/* $(CLASSES_DIR)/
 
 .phony: clear
 clear:

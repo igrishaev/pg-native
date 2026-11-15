@@ -27,6 +27,22 @@ JNIEXPORT jint JNICALL Java_pg_jni_Connection_PQstatus
 
 /*
  * Class:     pg_jni_Connection
+ * Method:    PQerrorMessage
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Connection
+ * Method:    PQexec
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexec
+  (JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     pg_jni_Connection
  * Method:    PQexecParams
  * Signature: (JJIJJJJI)J
  */

@@ -31,7 +31,7 @@ public class Result implements AutoCloseable, Iterable<Row> {
     }
 
     private static native int getResultInfo(long ptr);
-
+    protected static native int PQresultStatus(long result);
     private static native int getFieldInfo(long ptr, int row, int col);
 
     public String getValue(int row, int col) {

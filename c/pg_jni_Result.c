@@ -18,3 +18,10 @@ JNIEXPORT void JNICALL Java_pg_jni_Result_PQclear
     PGresult *result = (PGresult *) jresult;
     PQclear(result);
 }
+
+JNIEXPORT jint JNICALL Java_pg_jni_Result_PQresultStatus
+  (JNIEnv *env, jclass jcls, jlong jresult) {
+    PGresult *result = (PGresult *) jresult;
+    return PQresultStatus(result);
+
+}
