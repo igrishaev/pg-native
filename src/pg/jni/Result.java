@@ -1,5 +1,8 @@
 package pg.jni;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 public class Result implements AutoCloseable, Iterable<Row> {
@@ -66,13 +69,24 @@ public class Result implements AutoCloseable, Iterable<Row> {
             throw new RuntimeException("failed to get row/col value");
         }
         arena.clear();
+        int isNull = arena.getInt();
+        if (isNull == 1) {
+            return null;
+        }
+
         int colType = arena.getInt();
         int colFormat = arena.getInt();
         int size = arena.getInt();
-        int isNull = arena.getInt();
-        String value = arena.getCString();
 
-        return value;
+        if (colFormat == 1) {
+            ByteBuffer bb = arena.slice(size);
+            bb.order(ByteOrder.BIG_ENDIAN);
+            return null;
+        } else {
+            byte[] buf = new byte[size];
+            arena.get(buf);
+            return new String(buf, StandardCharsets.UTF_8);
+        }
     }
 
     @Override

@@ -169,4 +169,8 @@ public class Arena {
         bb.position(bb.position() + n);
         return this;
     }
+
+    public ByteBuffer slice(int len) {
+        return bb.slice(bb.position(), len);
+    }
 }
