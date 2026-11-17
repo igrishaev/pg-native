@@ -28,7 +28,7 @@ JNIEXPORT jint JNICALL Java_pg_jni_Result_getResultInfo
         bb = bb_put_int(bb, colType);
     }
 
-    return 1;
+    return 0;
 }
 
 JNIEXPORT jint JNICALL Java_pg_jni_Result_getFieldInfo
@@ -48,7 +48,7 @@ JNIEXPORT jint JNICALL Java_pg_jni_Result_getFieldInfo
     bb = bb_put_int(bb, isNull);
     bb = bb_put_char(bb, value);
 
-    return 1;
+    return 0;
 }
 
 JNIEXPORT void JNICALL Java_pg_jni_Result_PQclear

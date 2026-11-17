@@ -71,8 +71,7 @@ public class Connection implements AutoCloseable {
             paramFormats[i] = 0;
         }
 
-        arena.clear().boNative();
-
+        arena.clear();
         long resPtr = PQexecParams(
                 ptr,
                 arena.charPtr(sql),

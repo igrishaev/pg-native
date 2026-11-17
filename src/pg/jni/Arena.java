@@ -14,8 +14,6 @@ public class Arena {
     private final ByteBuffer bb;
     private final int bbSize;
     protected final long ptr;
-    private final ByteOrder BO_JVM;
-    private final ByteOrder BO_JNI;
 
     private final int LEN_LONG = 8;
     private static final long NULL;
@@ -25,25 +23,22 @@ public class Arena {
         NULL = getNull();
     }
 
-    private Arena(ByteBuffer bb, int bbSize, long ptr, ByteOrder BO_JVM, ByteOrder BO_JNI) {
+    private Arena(ByteBuffer bb, int bbSize, long ptr) {
         this.bb = bb;
         this.bbSize = bbSize;
         this.ptr = ptr;
-        this.BO_JVM = BO_JVM;
-        this.BO_JNI = BO_JNI;
     }
 
     private static native long getBBAddr(ByteBuffer bb);
 
     public static Arena make(int size) {
         final ByteBuffer bb = ByteBuffer.allocateDirect(size);
+        bb.order(ByteOrder.nativeOrder());
         final long ptr = getBBAddr(bb);
-        ByteOrder BO_JVM = bb.order();
-        ByteOrder BO_JNI = ByteOrder.nativeOrder();
         if (ptr == NULL) {
             throw new RuntimeException("failed to get a native address of a byte buffer");
         }
-        return new Arena(bb, size, ptr, BO_JVM, BO_JNI);
+        return new Arena(bb, size, ptr);
     }
 
     @Override
@@ -58,16 +53,6 @@ public class Arena {
 
     public Arena clear() {
         bb.clear();
-        return this;
-    }
-
-    public Arena boJava() {
-        bb.order(BO_JVM);
-        return this;
-    }
-
-    public Arena boNative() {
-        bb.order(BO_JNI);
         return this;
     }
 
