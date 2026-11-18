@@ -1,0 +1,30 @@
+    BB *bb = bb_wrap((char *)jbb, BB_SIZE);
+    if (!bb) {
+        res = -1;
+        goto cleanup;
+    }
+
+    res = bb_put_int(bb, nTuples);
+    if (res) goto cleanup;
+
+    res = bb_put_int(bb, nFields);
+    if (res) goto cleanup;
+
+    for (i = 0; i < nFields; i++) {
+        colName = PQfname(result, i);
+        colFormat = PQfformat(result, i);
+        colType = PQftype(result, i);
+
+        res = bb_put_str(bb, colName);
+        if (res) goto cleanup;
+
+        res = bb_put_int(bb, colFormat);
+        if (res) goto cleanup;
+
+        res = bb_put_int(bb, colType);
+        if (res) goto cleanup;
+    }
+
+cleanup:
+    if (bb) bb_free(bb);
+    return res;

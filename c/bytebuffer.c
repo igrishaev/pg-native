@@ -27,7 +27,7 @@ void bb_free(BB *bb) {
     }
 }
 
-static int bb_put_val(BB *bb, char *val, size_t len) {
+static int bb_put_val(BB *bb, void *val, size_t len) {
     if (len > bb->rem) {
         return -1;
     }

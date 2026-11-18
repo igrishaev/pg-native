@@ -5,17 +5,20 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class Arena {
+public class Arena implements AutoCloseable {
 
     static {
         Native.loadLib();
     }
 
-    private final ByteBuffer bb;
-    private final int bbSize;
-    protected final long ptr;
+    private ByteBuffer bb;
+    protected int size;
+    protected long ptr;
+    private boolean isClosed;
 
-    private final int LEN_LONG = 8;
+    private static final int growSize = 1024;
+    private static final int LEN_LONG = 8;
+    private static final int LEN_INT = 4;
     private static final long NULL;
 
     private static native long getNull();
@@ -23,52 +26,69 @@ public class Arena {
         NULL = getNull();
     }
 
-    private Arena(ByteBuffer bb, int bbSize, long ptr) {
+    private Arena(ByteBuffer bb, int size, long ptr, boolean isClosed) {
         this.bb = bb;
-        this.bbSize = bbSize;
+        this.size = size;
+        this.ptr = ptr;
+        this.isClosed = isClosed;
+    }
+
+    private static native ByteBuffer malloc(int size);
+    private static native ByteBuffer realloc(long ptr, int size);
+    private static native void free(long ptr);
+
+    public static Arena make(int size) {
+        final ByteBuffer bb = malloc(size);
+        if (bb == null) {
+            throw Err.error("failed to allocate arena, size: %s", size);
+        }
+        bb.order(ByteOrder.nativeOrder());
+        final long ptr = bb.getLong(0);
+        return new Arena(bb, size, ptr, false);
+    }
+
+    private void maybeReallocate(int delta) {
+        if (delta >= bb.remaining()) {
+            return;
+        }
+        final int newSize = this.size + Math.max(delta, growSize);
+        final int pos = bb.position();
+        final ByteBuffer bb = realloc(ptr, newSize);
+        if (bb == null) {
+            throw Err.error("failed to reallocate arena, new size: %s", newSize);
+        }
+        bb.position(pos);
+        bb.order(ByteOrder.nativeOrder());
+        final long ptr = bb.getLong(0);
+        this.bb = bb;
+        this.size = newSize;
         this.ptr = ptr;
     }
 
-    private static native long getBBAddr(ByteBuffer bb);
-
-    public static Arena make(int size) {
-        final ByteBuffer bb = ByteBuffer.allocateDirect(size);
-        bb.order(ByteOrder.nativeOrder());
-        final long ptr = getBBAddr(bb);
-        if (ptr == NULL) {
-            throw new RuntimeException("failed to get a native address of a byte buffer");
-        }
-        return new Arena(bb, size, ptr);
-    }
-
     @Override
-    public String toString() {
-        return String.format("<Arena, size: %d>", bbSize);
+    public void close() {
+        if (!isClosed) {
+            free(ptr);
+            this.bb = null;
+            this.size = -1;
+            this.ptr = NULL;
+            isClosed = true;
+        }
     }
 
-    @SuppressWarnings("unused")
-    public int size() {
-        return bbSize;
-    }
+    // setters
 
-    public Arena clear() {
-        bb.clear();
-        return this;
-    }
-
-    public long intPtr(int value) {
-        int pos = bb.position();
-        bb.putInt(value);
-        return ptr + pos;
-    }
-
-    public long longPtr(long value) {
-        int pos = bb.position();
-        bb.putLong(value);
-        return ptr + pos;
+    private long putNULL() {
+        maybeReallocate(LEN_LONG);
+        bb.putLong(NULL);
+        return ptr + LEN_LONG;
     }
 
     public long intArrayPtr(int[] values) {
+        if (values == null) {
+            return putNULL();
+        }
+        maybeReallocate(values.length * LEN_INT);
         int pos = bb.position();
         for (int i: values) {
             bb.putInt(i);
@@ -76,50 +96,57 @@ public class Arena {
         return ptr + pos;
     }
 
-    public long longArrayPtr(long[] values) {
-        int pos = bb.position();
-        for (long l: values) {
-            bb.putLong(l);
-        }
-        return ptr + pos;
-    }
-
     public long charPtr(String s) {
+        if (s == null) {
+            return putNULL();
+        }
         int pos = bb.position();
         byte[] buf = s.getBytes(StandardCharsets.UTF_8);
+        maybeReallocate(buf.length + 1);
         bb.put(buf);
         bb.put((byte) 0);
         return ptr + pos;
     }
 
     public long stringArrayPtr(String[] arr) {
+        if (arr == null) {
+            return putNULL();
+        }
         String s;
-        int pos = bb.position();
-        int posTmp;
-        bb.position(pos + arr.length * LEN_LONG);
+        byte[] buf;
+        byte[][] bufs = new byte[arr.length][];
         for (int i = 0; i < arr.length; i++) {
-            posTmp = bb.position();
             s = arr[i];
             if (s == null) {
-                bb.putLong(NULL);
+                bufs[i] = null;
             } else {
-                byte[] buf = s.getBytes(StandardCharsets.UTF_8);
-                bb.put(buf);
-                bb.put((byte) 0);
+                buf = s.getBytes(StandardCharsets.UTF_8);
+                bufs[i] = buf;
             }
-            bb.putLong(pos + i * LEN_LONG, ptr + posTmp);
         }
-        return ptr + pos;
+        return byteArray2Ptr(bufs);
     }
 
-    public long byteArray2Ptr(byte[][] arr) {
-        byte[] buf;
+    public long byteArray2Ptr(byte[][] bufs) {
+        if (bufs == null) {
+            return putNULL();
+        }
+        int len = bufs.length * LEN_LONG;
         int pos = bb.position();
+        for (byte[] buf: bufs) {
+            if (buf == null) {
+                len += LEN_LONG;
+            } else {
+                len += buf.length + 1;
+            }
+        }
+        maybeReallocate(len);
+        bb.position(pos + bufs.length * LEN_LONG);
         int posTmp;
-        bb.position(pos + arr.length * LEN_LONG);
-        for (int i = 0; i < arr.length; i++) {
+        byte[] buf;
+        for (int i = 0; i < bufs.length; i++) {
             posTmp = bb.position();
-            buf = arr[i];
+            buf = bufs[i];
             if (buf == null) {
                 bb.putLong(NULL);
             } else {
@@ -130,6 +157,8 @@ public class Arena {
         }
         return ptr + pos;
     }
+
+    // getters
 
     public int getInt() {
         return bb.getInt();
@@ -157,12 +186,15 @@ public class Arena {
         return StandardCharsets.UTF_8.decode(slice).toString();
     }
 
-    @SuppressWarnings("unused")
-    public Arena debug(final int len) {
-        final byte[] ba = new byte[len];
-        bb.get(0, ba);
-        System.out.println(Arrays.toString(ba));
-        return this;
+    // misc
+
+    @Override
+    public String toString() {
+        return String.format("<Arena, size: %d>", size);
+    }
+
+    public void clear() {
+        bb.clear();
     }
 
     public Arena skip(int n) {
@@ -172,5 +204,13 @@ public class Arena {
 
     public ByteBuffer slice(int len) {
         return bb.slice(bb.position(), len);
+    }
+
+    @SuppressWarnings("unused")
+    public Arena debug(final int len) {
+        final byte[] ba = new byte[len];
+        bb.get(0, ba);
+        System.out.println(Arrays.toString(ba));
+        return this;
     }
 }
