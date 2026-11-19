@@ -32,7 +32,7 @@ public class Result implements AutoCloseable, Iterable<Row> {
     }
 
     public static Result make(long ptr, Arena arena) {
-        int res = getResultInfo(ptr, arena.ptr);
+        int res = getResultInfo(ptr, -1); // TODO
         if (res != 0) {
             throw new RuntimeException("failed to get result info");
         }
@@ -64,7 +64,7 @@ public class Result implements AutoCloseable, Iterable<Row> {
         if (col >= nFields) {
             throw Err.error("wrong column: %s", col);
         }
-        int res = getFieldInfo(ptr, row, col, arena.ptr);
+        int res = getFieldInfo(ptr, row, col, -1); // TODO
         if (res != 0) {
             throw new RuntimeException("failed to get row/col value");
         }

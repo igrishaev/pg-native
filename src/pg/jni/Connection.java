@@ -77,7 +77,7 @@ public class Connection implements AutoCloseable {
                 arena.charPtr(sql),
                 len,
                 arena.intArrayPtr(paramTypes),
-                arena.byteArray2Ptr(paramValues),
+                arena.charArrayPtr(paramValues),
                 arena.intArrayPtr(paramLengths),
                 arena.intArrayPtr(paramFormats),
                 0
