@@ -1,11 +1,6 @@
 package pg.jni;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
-public class Result implements AutoCloseable, Iterable<Row> {
+public class Result implements AutoCloseable {
 
     static {
         Native.loadLib();
@@ -13,98 +8,66 @@ public class Result implements AutoCloseable, Iterable<Row> {
 
     private final long ptr;
     private boolean isClosed;
-    private final Arena arena;
-    private final int rowCount;
-    private final int nFields;
-    private final String[] colNames;
-    private final int[] colFormats;
-    private final int[] colTypes;
 
-    private Result(long ptr, Arena arena, boolean isClosed, int rowCount, int nFields, String[] colNames, int[] colFormats, int[] colTypes) {
+    private Result(long ptr, boolean isClosed) {
         this.ptr = ptr;
-        this.arena = arena;
         this.isClosed = isClosed;
-        this.rowCount = rowCount;
-        this.nFields = nFields;
-        this.colNames = colNames;
-        this.colFormats = colFormats;
-        this.colTypes = colTypes;
     }
 
     public static Result make(long ptr, Arena arena) {
-        int res = getResultInfo(ptr, -1); // TODO
-        if (res != 0) {
-            throw new RuntimeException("failed to get result info");
-        }
-        arena.clear();
-        int nTuples = arena.getInt();
-        int nFields = arena.getInt();
-
-        String[] colNames = new String[nFields];
-        int[] colFormats = new int[nFields];
-        int[] colTypes = new int[nFields];
-
-        for (int i = 0; i < nFields; i++) {
-            colNames[i] = arena.getCString();
-            colFormats[i] = arena.getInt();
-            colTypes[i] = arena.getInt();
-        }
-
-        return new Result(ptr, arena, false, nTuples, nFields, colNames, colFormats, colTypes);
+        return new Result(ptr, false);
     }
 
-    private static native int getResultInfo(long ptr, long bb);
     protected static native int PQresultStatus(long result);
-    private static native int getFieldInfo(long ptr, int row, int col, long bb);
+    private static native void PQclear(long result);
 
-    public String getValue(int row, int col) {
-        if (row >= rowCount) {
-            throw Err.error("wrong row: %s", row);
-        }
-        if (col >= nFields) {
-            throw Err.error("wrong column: %s", col);
-        }
-        int res = getFieldInfo(ptr, row, col, -1); // TODO
-        if (res != 0) {
-            throw new RuntimeException("failed to get row/col value");
-        }
-        arena.clear();
-        int isNull = arena.getInt();
+    private static native String _colName(long result, int col);
+    public String colName(int col) {
+        return _colName(ptr, col);
+    }
+
+    private static native int _colType(long result, int col);
+    public int colType(int col) {
+        return _colType(ptr, col);
+    }
+
+    private static native int _colFormat(long result, int col);
+    public int colFormat(int col) {
+        return _colFormat(ptr, col);
+    }
+
+    private static native int _colCount(long result);
+    public int colCount() {
+        return _colCount(ptr);
+    }
+
+    private static native int _rowCount(long result);
+    public int rowCount() {
+        return _rowCount(ptr);
+    }
+
+    private static native int _isNull(long result, int row, int col);
+    public int isNull(int row, int col) {
+        return _isNull(ptr, row, col);
+    }
+
+    private static native String _getValueStr(long result, int row, int col);
+    private static native byte[] _getValueBuf(long result, int row, int col);
+
+    public Object getValue(int row, int col) {
+        final int isNull = isNull(row, col);
         if (isNull == 1) {
             return null;
         }
-
-        int colType = arena.getInt();
-        int colFormat = arena.getInt();
-        int size = arena.getInt();
-
-        if (colFormat == 1) {
-            ByteBuffer bb = arena.slice(size);
-            bb.order(ByteOrder.BIG_ENDIAN);
-            return null;
+        // TODO: cache
+        final int format = colFormat(col);
+        final int type = colType(col);
+        if (format == 0) {
+            return _getValueStr(ptr, row, col);
         } else {
-            byte[] buf = new byte[size];
-            arena.get(buf);
-            return new String(buf, StandardCharsets.UTF_8);
+            return _getValueBuf(ptr, row, col);
         }
     }
-
-    @Override
-    public Iterator<Row> iterator() {
-        return new Iterator<>() {
-            private int row = 0;
-            @Override
-            public boolean hasNext() {
-                return row < rowCount;
-            }
-            @Override
-            public Row next() {
-                return Row.make(ptr, row++);
-            }
-        };
-    }
-
-    private static native void PQclear(long ptr);
 
     @Override
     public void close() {

@@ -5,13 +5,13 @@ SRC_PATH = src/pg/jni
 C_PATH = c
 
 JAVAFILES = \
+	$(SRC_PATH)/PGError.java \
 	$(SRC_PATH)/Err.java \
 	$(SRC_PATH)/OS.java \
 	$(SRC_PATH)/Native.java \
 	$(SRC_PATH)/Arena.java \
 	$(SRC_PATH)/Connection.java \
 	$(SRC_PATH)/Result.java \
-	$(SRC_PATH)/Row.java \
 
 MODULES = \
 	$(C_PATH)/bytebuffer.c \

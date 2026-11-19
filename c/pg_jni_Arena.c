@@ -8,5 +8,5 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Arena_getNull
 
 JNIEXPORT jlong JNICALL Java_pg_jni_Arena_bbAddress
   (JNIEnv *env, jclass jcls, jobject jbb) {
-    return (jlong) JNI_CALL(env, GetDirectBufferAddress, jbb);
+    return (jlong) JNI(env, GetDirectBufferAddress, jbb);
 }

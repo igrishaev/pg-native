@@ -18,7 +18,7 @@ JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
     PGconn *conn = (PGconn *) jconn;
     char *msg = PQerrorMessage(conn);
     if (msg) {
-        return JNI_CALL(env, NewStringUTF, msg);
+        return JNI(env, NewStringUTF, msg);
     } else {
         return NULL;
     }

@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     pg_jni_Result
- * Method:    getResultInfo
- * Signature: (JJ)I
- */
-JNIEXPORT jint JNICALL Java_pg_jni_Result_getResultInfo
-  (JNIEnv *, jclass, jlong, jlong);
-
-/*
- * Class:     pg_jni_Result
  * Method:    PQresultStatus
  * Signature: (J)I
  */
@@ -25,19 +17,75 @@ JNIEXPORT jint JNICALL Java_pg_jni_Result_PQresultStatus
 
 /*
  * Class:     pg_jni_Result
- * Method:    getFieldInfo
- * Signature: (JIIJ)I
- */
-JNIEXPORT jint JNICALL Java_pg_jni_Result_getFieldInfo
-  (JNIEnv *, jclass, jlong, jint, jint, jlong);
-
-/*
- * Class:     pg_jni_Result
  * Method:    PQclear
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_pg_jni_Result_PQclear
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _colName
+ * Signature: (JI)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_pg_jni_Result__1colName
+  (JNIEnv *, jclass, jlong, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _colType
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1colType
+  (JNIEnv *, jclass, jlong, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _colFormat
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1colFormat
+  (JNIEnv *, jclass, jlong, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _colCount
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1colCount
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _rowCount
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1rowCount
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _isNull
+ * Signature: (JII)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1isNull
+  (JNIEnv *, jclass, jlong, jint, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _getValueStr
+ * Signature: (JII)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_pg_jni_Result__1getValueStr
+  (JNIEnv *, jclass, jlong, jint, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _getValueBuf
+ * Signature: (JII)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_pg_jni_Result__1getValueBuf
+  (JNIEnv *, jclass, jlong, jint, jint);
 
 #ifdef __cplusplus
 }

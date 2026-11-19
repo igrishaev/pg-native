@@ -23,6 +23,9 @@ public class Connection implements AutoCloseable {
     private static native long PQconnectdb(long conninfo);
     private static native int PQstatus(long conn);
     protected static native String PQerrorMessage(long conn);
+    private static native long PQexec(long conn, long cmd);
+    private static native long PQexecParams(long conn, long command, int nParams, long paramTypes, long paramValues, long paramLengths, long paramFormats, int resultFormat);
+    private static native void PQfinish(long ptr);
 
     public static Connection make(String connInfo) {
         Arena arena = Arena.make(64000);
@@ -37,8 +40,6 @@ public class Connection implements AutoCloseable {
         return new Connection(arena, ptr, false);
     }
 
-    private static native long PQexec(long conn, long cmd);
-
     public Result exec(String sql) {
         arena.clear();
         long sqlPtr = arena.charPtr(sql);
@@ -46,14 +47,13 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw new RuntimeException("failed to execute");
         }
-
-        int status = Result.PQresultStatus(resPtr);
-        String msg = PQerrorMessage(ptr);
-
+//        int status = Result.PQresultStatus(resPtr);
+//        String message = PQerrorMessage(ptr);
+//        if (status != 2) {
+//            throw PGError.make(status, message);
+//        }
         return Result.make(resPtr, arena);
     }
-
-    private static native long PQexecParams(long conn, long command, int nParams, long paramTypes, long paramValues, long paramLengths, long paramFormats, int resultFormat);
 
     public Result execParams(String sql, List<Object> params) {
         int len = params.size();
@@ -87,8 +87,6 @@ public class Connection implements AutoCloseable {
         }
         return Result.make(resPtr, arena);
     }
-
-    private static native void PQfinish(long ptr);
 
     @Override
     public void close() {

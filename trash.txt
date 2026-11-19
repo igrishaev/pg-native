@@ -28,3 +28,76 @@
 cleanup:
     if (bb) bb_free(bb);
     return res;
+
+
+    int size = PQgetlength(result, jrow, jcol);
+    int isNull = PQgetisnull(result, jrow, jcol);
+    char *value = PQgetvalue(result, jrow, jcol);
+
+
+JNIEXPORT jintArray JNICALL Java_pg_jni_Result__1colTypes
+  (JNIEnv *env, jclass jcls, jlong jresult) {
+
+    int i;
+    PGresult *result = (PGresult *) jresult;
+    int nFields = PQnfields(result);
+
+    jintArray jarr = JNI(env, NewIntArray, nFields);
+    if (jarr == NULL) {
+        return NULL;
+    }
+
+    Oid *oids = (Oid *) malloc(nFields * sizeof(Oid));
+
+    for (i = 0; i < nFields; i++) {
+        oids[i] = PQftype(result, i);
+    }
+
+    JNI(env, SetIntArrayRegion, jarr, 0, nFields, oids);
+    free(oids);
+    return jarr;
+}
+
+JNIEXPORT jstring JNICALL Java_pg_jni_Result__1colName
+  (JNIEnv *env, jclass jcls, jlong jresult, jint jcol) {
+    PGresult *result = (PGresult *) jresult;
+    char *name = PQfname(result, jcol);
+    if (!name) {
+        return NULL;
+    }
+    return JNI(env, NewStringUTF, name);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_pg_jni_Result__1colNames
+  (JNIEnv *env, jclass jcls, jlong jresult) {
+    PGresult *result = (PGresult *) jresult;
+
+    int i;
+    char *colName;
+    jstring jstr;
+    jobjectArray jarr;
+    jclass jString;
+
+    int nFields = PQnfields(result);
+
+    jString = JNI(env, FindClass, "java/lang/String");
+    if (jString == NULL) {
+        return NULL;
+    }
+
+    jarr = JNI(env, NewObjectArray, nFields, jString, NULL);
+    if (jarr == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < nFields; i++) {
+        colName = PQfname(result, i);
+        jstr = JNI(env, NewStringUTF, colName);
+        if (jstr == NULL) {
+            return NULL;
+        }
+        JNI(env, SetObjectArrayElement, jarr, i, jstr);
+        JNI(env, DeleteLocalRef, jstr);
+    }
+    return jarr;
+}
