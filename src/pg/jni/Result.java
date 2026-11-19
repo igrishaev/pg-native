@@ -19,12 +19,24 @@ public class Result implements AutoCloseable {
         this.isClosed = isClosed;
     }
 
-    public static Result make(long ptr, Arena arena) {
+    public static Result make(long ptr) {
         return new Result(ptr, false);
     }
 
-    protected static native int PQresultStatus(long result);
-    private static native void PQclear(long result);
+    private static native int _status(long result);
+    public int status() {
+        return _status(ptr);
+    }
+
+    private static native int _nParams(long result);
+    public int nParams() {
+        return _nParams(ptr);
+    }
+
+    private static native int _paramType(long result, int n);
+    public int paramType(int n) {
+        return _paramType(ptr, n);
+    }
 
     private static native String _colName(long result, int col);
     public String colName(int col) {
@@ -81,11 +93,12 @@ public class Result implements AutoCloseable {
         }
     }
 
+    private static native void _clear(long result);
     @Override
     public void close() {
         if (!isClosed) {
             isClosed = true;
-            PQclear(ptr);
+            _clear(ptr);
         }
     }
 }

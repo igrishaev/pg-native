@@ -9,19 +9,27 @@ extern "C" {
 #endif
 /*
  * Class:     pg_jni_Result
- * Method:    PQresultStatus
+ * Method:    _status
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_pg_jni_Result_PQresultStatus
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1status
   (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     pg_jni_Result
- * Method:    PQclear
- * Signature: (J)V
+ * Method:    _nParams
+ * Signature: (J)I
  */
-JNIEXPORT void JNICALL Java_pg_jni_Result_PQclear
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1nParams
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _paramType
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1paramType
+  (JNIEnv *, jclass, jlong, jint);
 
 /*
  * Class:     pg_jni_Result
@@ -86,6 +94,14 @@ JNIEXPORT jstring JNICALL Java_pg_jni_Result__1getValueStr
  */
 JNIEXPORT jbyteArray JNICALL Java_pg_jni_Result__1getValueBuf
   (JNIEnv *, jclass, jlong, jint, jint);
+
+/*
+ * Class:     pg_jni_Result
+ * Method:    _clear
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_pg_jni_Result__1clear
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

@@ -3,13 +3,13 @@
 #include "macros.h"
 #include "libpq-fe.h"
 
-JNIEXPORT void JNICALL Java_pg_jni_Result_PQclear
+JNIEXPORT void JNICALL Java_pg_jni_Result__1clear
   (JNIEnv *env, jclass jcls, jlong jresult) {
     PGresult *result = (PGresult *) jresult;
     PQclear(result);
 }
 
-JNIEXPORT jint JNICALL Java_pg_jni_Result_PQresultStatus
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1status
   (JNIEnv *env, jclass jcls, jlong jresult) {
     PGresult *result = (PGresult *) jresult;
     return PQresultStatus(result);
@@ -80,4 +80,17 @@ JNIEXPORT jbyteArray JNICALL Java_pg_jni_Result__1getValueBuf
     }
     JNI(env, SetByteArrayRegion, jarr, 0, size, (jbyte *) val);
     return jarr;
+}
+
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1nParams
+  (JNIEnv *env, jclass jcls, jlong jresult) {
+    PGresult *result = (PGresult *) jresult;
+    return PQnparams(result);
+}
+
+
+JNIEXPORT jint JNICALL Java_pg_jni_Result__1paramType
+  (JNIEnv *env, jclass jcls, jlong jresult, jint n) {
+    PGresult *result = (PGresult *) jresult;
+    return PQparamtype(result, n);
 }

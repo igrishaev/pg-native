@@ -7,8 +7,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef pg_jni_Connection_NULL
-#define pg_jni_Connection_NULL 0LL
+/*
+ * Class:     pg_jni_Connection
+ * Method:    getNull
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection_getNull
+  (JNIEnv *, jclass);
+
 /*
  * Class:     pg_jni_Connection
  * Method:    PQconnectdb
@@ -35,14 +41,6 @@ JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
 
 /*
  * Class:     pg_jni_Connection
- * Method:    PQexec
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexec
-  (JNIEnv *, jclass, jlong, jlong);
-
-/*
- * Class:     pg_jni_Connection
  * Method:    PQexecParams
  * Signature: (JJIJJJJI)J
  */
@@ -56,6 +54,30 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexecParams
  */
 JNIEXPORT void JNICALL Java_pg_jni_Connection_PQfinish
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Connection
+ * Method:    _exec
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1exec
+  (JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     pg_jni_Connection
+ * Method:    _prepare
+ * Signature: (JJJIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1prepare
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong);
+
+/*
+ * Class:     pg_jni_Connection
+ * Method:    _describePrepared
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1describePrepared
+  (JNIEnv *, jclass, jlong, jlong);
 
 #ifdef __cplusplus
 }

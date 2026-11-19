@@ -11,6 +11,7 @@ JAVAFILES = \
 	$(SRC_PATH)/codec/ACodec.java \
 	$(SRC_PATH)/codec/ICodec.java \
 	$(SRC_PATH)/codec/Codecs.java \
+	$(SRC_PATH)/Statement.java \
 	$(SRC_PATH)/PGError.java \
 	$(SRC_PATH)/Err.java \
 	$(SRC_PATH)/OS.java \

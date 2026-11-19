@@ -18,7 +18,7 @@ public class Arena {
     private static final int SIZE_GROW = 1014;
     private static final int SIZE_LONG = 8;
     private static final int SIZE_INT = 4;
-    private static final long NULL;
+    public static final long NULL;
 
     private static native long getNull();
     static {
