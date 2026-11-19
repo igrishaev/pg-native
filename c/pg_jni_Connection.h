@@ -79,6 +79,14 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1prepare
 JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1describePrepared
   (JNIEnv *, jclass, jlong, jlong);
 
+/*
+ * Class:     pg_jni_Connection
+ * Method:    _execPrepared
+ * Signature: (JJIJJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1execPrepared
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jlong, jlong, jint);
+
 #ifdef __cplusplus
 }
 #endif

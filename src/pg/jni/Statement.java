@@ -20,6 +20,18 @@ public class Statement implements AutoCloseable {
         this.isClosed = false;
     }
 
+    public String name() {
+        return name;
+    }
+
+    public int nParams() {
+        return nParams;
+    }
+
+    public int[] oids() {
+        return oids;
+    }
+
     private static native long _closePrepared(long connPtr, long ptrName);
 
     @Override

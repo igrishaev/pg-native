@@ -1,5 +1,9 @@
 package pg.jni;
 
+import pg.jni.codec.Codecs;
+import pg.jni.codec.ICodec;
+
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class Connection implements AutoCloseable {
@@ -98,8 +102,54 @@ public class Connection implements AutoCloseable {
         return new Statement(ptr, name, sql, nParams, oids, arena);
     }
 
+    private native static long _execPrepared(long conn, long ptrName, int nParams, long ptrValues, long ptrLengths, long ptrFormats, int resultFormat);
+
     public Result execPrepared(Statement st, List<Object> params) {
-        return null;
+        int nParams = st.nParams();
+        if (nParams != params.size()) {
+            throw new RuntimeException("wrong params count");
+        }
+        int resultFormat = 1;
+        int[] oids = st.oids();
+        byte[][] values = new byte[nParams][];
+        int[] lengths = new int[nParams];
+        int[] formats = new int[nParams];
+        int format;
+        Object param;
+        ICodec codec;
+        byte[] buf;
+        int len;
+        int oid;
+        for (int i = 0; i < nParams; i++) {
+            format = 1;
+            param = params.get(i); // TODO check
+            oid = oids[i];
+            codec = Codecs.get(oid);
+            ByteBuffer bb = codec.encodeBin(param);
+            buf = bb.array();
+            len = buf.length;
+            formats[i] = format;
+            lengths[i] = len;
+            values[i] = buf;
+        }
+        arena.clear();
+        long ptrName = arena.charPtr(st.name());
+        long ptrValues = arena.charArrayPtr(values);
+        long ptrLengths = arena.intArrayPtr(lengths);
+        long ptrFormats = arena.intArrayPtr(formats);
+        long resPtr = _execPrepared(
+                ptr,
+                ptrName,
+                nParams,
+                ptrValues,
+                ptrLengths,
+                ptrFormats,
+                resultFormat
+        );
+        if (resPtr == NULL) {
+            throw new RuntimeException("failed to _execPrepared");
+        }
+        return Result.make(resPtr);
     }
 
 
