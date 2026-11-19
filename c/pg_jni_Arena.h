@@ -7,8 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef pg_jni_Arena_growSize
-#define pg_jni_Arena_growSize 1014L
+#undef pg_jni_Arena_SIZE_GROW
+#define pg_jni_Arena_SIZE_GROW 1014L
 #undef pg_jni_Arena_SIZE_LONG
 #define pg_jni_Arena_SIZE_LONG 8L
 #undef pg_jni_Arena_SIZE_INT
@@ -23,27 +23,11 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Arena_getNull
 
 /*
  * Class:     pg_jni_Arena
- * Method:    malloc
- * Signature: (I)Ljava/nio/ByteBuffer;
+ * Method:    bbAddress
+ * Signature: (Ljava/nio/ByteBuffer;)J
  */
-JNIEXPORT jobject JNICALL Java_pg_jni_Arena_malloc
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     pg_jni_Arena
- * Method:    realloc
- * Signature: (JI)Ljava/nio/ByteBuffer;
- */
-JNIEXPORT jobject JNICALL Java_pg_jni_Arena_realloc
-  (JNIEnv *, jclass, jlong, jint);
-
-/*
- * Class:     pg_jni_Arena
- * Method:    free
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_pg_jni_Arena_free
-  (JNIEnv *, jclass, jlong);
+JNIEXPORT jlong JNICALL Java_pg_jni_Arena_bbAddress
+  (JNIEnv *, jclass, jobject);
 
 #ifdef __cplusplus
 }

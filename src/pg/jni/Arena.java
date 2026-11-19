@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class Arena implements AutoCloseable {
+public class Arena {
 
     static {
         Native.loadLib();
@@ -16,7 +16,7 @@ public class Arena implements AutoCloseable {
     private long ptr;
     private boolean isClosed;
 
-    private static final int growSize = 1014;
+    private static final int SIZE_GROW = 1014;
     private static final int SIZE_LONG = 8;
     private static final int SIZE_INT = 4;
     private static final long NULL;
@@ -26,56 +26,42 @@ public class Arena implements AutoCloseable {
         NULL = getNull();
     }
 
-    private Arena(ByteBuffer bb, int size, long ptr, boolean isClosed) {
+    private Arena(ByteBuffer bb, int size, long ptr) {
         this.bb = bb;
         this.size = size;
         this.ptr = ptr;
-        this.isClosed = isClosed;
     }
 
-    private static native ByteBuffer malloc(int size);
-    private static native ByteBuffer realloc(long ptr, int size);
-    private static native void free(long ptr);
+    private static native long bbAddress(ByteBuffer bb);
 
     public static Arena make(int size) {
-        final ByteBuffer bb = malloc(size);
-        if (bb == null) {
+        final ByteBuffer bb = ByteBuffer.allocateDirect(size);
+        bb.order(ByteOrder.nativeOrder());
+        final long ptr = bbAddress(bb);
+        if (ptr == NULL) {
             throw Err.error("failed to allocate arena, size: %s", size);
         }
-        bb.order(ByteOrder.nativeOrder());
-        final long ptr = bb.getLong(0);
-        return new Arena(bb, size, ptr, false);
+        return new Arena(bb, size, ptr);
     }
 
     private void maybeReallocate(int delta) {
         if (delta >= bb.remaining()) {
             return;
         }
-        final int newSize = this.size + Math.max(delta, growSize);
-        final int pos = bb.position();
-        final ByteBuffer bb = realloc(ptr, newSize);
-        if (bb == null) {
-            throw Err.error("failed to reallocate arena, new size: %s", newSize);
+        final int sizeNew = this.size + Math.max(delta, SIZE_GROW);
+        final ByteBuffer bbNew = ByteBuffer.allocateDirect(sizeNew);
+        bbNew.order(ByteOrder.nativeOrder());
+        final long ptrNew = bbAddress(bbNew);
+        if (ptrNew == NULL) {
+            throw Err.error("failed to reallocate arena, size: %s", sizeNew);
         }
-        bb.order(ByteOrder.nativeOrder());
-        bb.position(pos);
-        final long ptr = bb.getLong(0);
-        this.bb = bb;
-        this.size = newSize;
-        this.ptr = ptr;
+        bb.flip();
+        bbNew.put(bb);
+        this.bb = bbNew;
+        this.size = sizeNew;
+        this.ptr = ptrNew;
     }
-
-    @Override
-    public void close() {
-        if (!isClosed) {
-            free(ptr);
-            this.bb = null;
-            this.size = -1;
-            this.ptr = NULL;
-            isClosed = true;
-        }
-    }
-
+    
     // setters
 
     private long putNULL() {
@@ -204,5 +190,14 @@ public class Arena implements AutoCloseable {
         bb.get(0, ba);
         System.out.println(Arrays.toString(ba));
         return this;
+    }
+
+    public static void main(String... args) {
+        var a = Arena.make(64);
+        String[] arr = new String[]{"foo", "bar", "baz"};
+        var ptr = a.charArrayPtr(arr);
+        System.out.println(a.ptr);
+        System.out.println(ptr);
+        a.debug(64);
     }
 }
