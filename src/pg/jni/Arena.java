@@ -14,7 +14,6 @@ public class Arena {
     private ByteBuffer bb;
     private int size;
     private long ptr;
-    private boolean isClosed;
 
     private static final int SIZE_GROW = 1014;
     private static final int SIZE_LONG = 8;
@@ -45,7 +44,7 @@ public class Arena {
     }
 
     private void maybeReallocate(int delta) {
-        if (delta >= bb.remaining()) {
+        if (delta <= bb.remaining()) {
             return;
         }
         final int sizeNew = this.size + Math.max(delta, SIZE_GROW);
@@ -61,21 +60,14 @@ public class Arena {
         this.size = sizeNew;
         this.ptr = ptrNew;
     }
-    
-    // setters
 
-    private long putNULL() {
-        maybeReallocate(SIZE_LONG);
-        int pos = bb.position();
-        bb.putLong(NULL);
-        return ptr + pos;
-    }
+    // setters
 
     public long longArrayPtr(final long[] values) {
         if (values == null) {
-            return putNULL();
+            return NULL;
         }
-        maybeReallocate(values.length * SIZE_INT);
+        maybeReallocate(values.length * SIZE_LONG);
         int pos = bb.position();
         for (long l: values) {
             bb.putLong(l);
@@ -85,7 +77,7 @@ public class Arena {
 
     public long intArrayPtr(final int[] values) {
         if (values == null) {
-            return putNULL();
+            return NULL;
         }
         maybeReallocate(values.length * SIZE_INT);
         int pos = bb.position();
@@ -97,7 +89,7 @@ public class Arena {
 
     public long charPtr(String s) {
         if (s == null) {
-            return putNULL();
+            return NULL;
         }
         byte[] buf = s.getBytes(StandardCharsets.UTF_8);
         return charPtr(buf);
@@ -105,7 +97,7 @@ public class Arena {
 
     public long charPtr(final byte[] buf) {
         if (buf == null) {
-            return putNULL();
+            return NULL;
         }
         int pos = bb.position();
         maybeReallocate(buf.length + 1);
@@ -116,7 +108,7 @@ public class Arena {
 
     public long charArrayPtr(final String[] arr) {
         if (arr == null) {
-            return putNULL();
+            return NULL;
         }
         long[] pointers = new long[arr.length];
         for (int i = 0; i < arr.length; i++) {
@@ -127,7 +119,7 @@ public class Arena {
 
     public long charArrayPtr(final byte[][] arr) {
         if (arr == null) {
-            return putNULL();
+            return NULL;
         }
         long[] pointers = new long[arr.length];
         for (int i = 0; i < arr.length; i++) {
@@ -140,6 +132,10 @@ public class Arena {
 
     public int getInt() {
         return bb.getInt();
+    }
+
+    public long getLong(int i) {
+        return bb.getLong(i);
     }
 
     public void get(byte[] buf) {
@@ -175,6 +171,7 @@ public class Arena {
         bb.clear();
     }
 
+    @SuppressWarnings("unused")
     public Arena skip(int n) {
         bb.position(bb.position() + n);
         return this;
@@ -185,19 +182,25 @@ public class Arena {
     }
 
     @SuppressWarnings("unused")
-    public Arena debug(final int len) {
+    public int position() {
+        return bb.position();
+    }
+
+    @SuppressWarnings("unused")
+    public void debug(final int len) {
         final byte[] ba = new byte[len];
         bb.get(0, ba);
         System.out.println(Arrays.toString(ba));
-        return this;
     }
 
     public static void main(String... args) {
         var a = Arena.make(64);
-        String[] arr = new String[]{"foo", "bar", "baz"};
+        String[] arr = new String[]{"foo", "bar"};
         var ptr = a.charArrayPtr(arr);
         System.out.println(a.ptr);
         System.out.println(ptr);
+        System.out.println(a.getLong(8));
+        System.out.println(a.getLong(8+8));
         a.debug(64);
     }
 }
