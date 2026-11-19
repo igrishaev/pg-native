@@ -12,13 +12,13 @@ public class Arena implements AutoCloseable {
     }
 
     private ByteBuffer bb;
-    protected int size;
-    protected long ptr;
+    private int size;
+    private long ptr;
     private boolean isClosed;
 
-    private static final int growSize = 1024;
-    private static final int LEN_LONG = 8;
-    private static final int LEN_INT = 4;
+    private static final int growSize = 1014;
+    private static final int SIZE_LONG = 8;
+    private static final int SIZE_INT = 4;
     private static final long NULL;
 
     private static native long getNull();
@@ -57,8 +57,8 @@ public class Arena implements AutoCloseable {
         if (bb == null) {
             throw Err.error("failed to reallocate arena, new size: %s", newSize);
         }
-        bb.position(pos);
         bb.order(ByteOrder.nativeOrder());
+        bb.position(pos);
         final long ptr = bb.getLong(0);
         this.bb = bb;
         this.size = newSize;
@@ -79,16 +79,29 @@ public class Arena implements AutoCloseable {
     // setters
 
     private long putNULL() {
-        maybeReallocate(LEN_LONG);
+        maybeReallocate(SIZE_LONG);
+        int pos = bb.position();
         bb.putLong(NULL);
-        return ptr + LEN_LONG;
+        return ptr + pos;
     }
 
-    public long intArrayPtr(int[] values) {
+    public long longArrayPtr(final long[] values) {
         if (values == null) {
             return putNULL();
         }
-        maybeReallocate(values.length * LEN_INT);
+        maybeReallocate(values.length * SIZE_INT);
+        int pos = bb.position();
+        for (long l: values) {
+            bb.putLong(l);
+        }
+        return ptr + pos;
+    }
+
+    public long intArrayPtr(final int[] values) {
+        if (values == null) {
+            return putNULL();
+        }
+        maybeReallocate(values.length * SIZE_INT);
         int pos = bb.position();
         for (int i: values) {
             bb.putInt(i);
@@ -100,62 +113,41 @@ public class Arena implements AutoCloseable {
         if (s == null) {
             return putNULL();
         }
-        int pos = bb.position();
         byte[] buf = s.getBytes(StandardCharsets.UTF_8);
+        return charPtr(buf);
+    }
+
+    public long charPtr(final byte[] buf) {
+        if (buf == null) {
+            return putNULL();
+        }
+        int pos = bb.position();
         maybeReallocate(buf.length + 1);
         bb.put(buf);
         bb.put((byte) 0);
         return ptr + pos;
     }
 
-    public long stringArrayPtr(String[] arr) {
+    public long charArrayPtr(final String[] arr) {
         if (arr == null) {
             return putNULL();
         }
-        String s;
-        byte[] buf;
-        byte[][] bufs = new byte[arr.length][];
+        long[] pointers = new long[arr.length];
         for (int i = 0; i < arr.length; i++) {
-            s = arr[i];
-            if (s == null) {
-                bufs[i] = null;
-            } else {
-                buf = s.getBytes(StandardCharsets.UTF_8);
-                bufs[i] = buf;
-            }
+            pointers[i] = charPtr(arr[i]);
         }
-        return byteArray2Ptr(bufs);
+        return longArrayPtr(pointers);
     }
 
-    public long byteArray2Ptr(byte[][] bufs) {
-        if (bufs == null) {
+    public long charArrayPtr(final byte[][] arr) {
+        if (arr == null) {
             return putNULL();
         }
-        int len = bufs.length * LEN_LONG;
-        int pos = bb.position();
-        for (byte[] buf: bufs) {
-            if (buf == null) {
-                len += LEN_LONG;
-            } else {
-                len += buf.length + 1;
-            }
+        long[] pointers = new long[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            pointers[i] = charPtr(arr[i]);
         }
-        maybeReallocate(len);
-        bb.position(pos + bufs.length * LEN_LONG);
-        int posTmp;
-        byte[] buf;
-        for (int i = 0; i < bufs.length; i++) {
-            posTmp = bb.position();
-            buf = bufs[i];
-            if (buf == null) {
-                bb.putLong(NULL);
-            } else {
-                bb.put(buf);
-                bb.put((byte) 0);
-            }
-            bb.putLong(pos + i * LEN_LONG, ptr + posTmp);
-        }
-        return ptr + pos;
+        return longArrayPtr(pointers);
     }
 
     // getters
