@@ -5,6 +5,12 @@ SRC_PATH = src/pg/jni
 C_PATH = c
 
 JAVAFILES = \
+	$(SRC_PATH)/codec/BOOL.java \
+	$(SRC_PATH)/codec/INT4.java \
+	$(SRC_PATH)/codec/TEXT.java \
+	$(SRC_PATH)/codec/ACodec.java \
+	$(SRC_PATH)/codec/ICodec.java \
+	$(SRC_PATH)/codec/Codecs.java \
 	$(SRC_PATH)/PGError.java \
 	$(SRC_PATH)/Err.java \
 	$(SRC_PATH)/OS.java \

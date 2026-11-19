@@ -1,5 +1,10 @@
 package pg.jni;
 
+import pg.jni.codec.Codecs;
+import pg.jni.codec.ICodec;
+
+import java.nio.ByteBuffer;
+
 public class Result implements AutoCloseable {
 
     static {
@@ -62,10 +67,17 @@ public class Result implements AutoCloseable {
         // TODO: cache
         final int format = colFormat(col);
         final int type = colType(col);
+        final ICodec codec = Codecs.get(type);
+        if (codec == null) {
+            throw Err.error("unsupported postgres type: %s", type);
+        }
         if (format == 0) {
-            return _getValueStr(ptr, row, col);
+            String str = _getValueStr(ptr, row, col);
+            return codec.decodeTxt(str);
         } else {
-            return _getValueBuf(ptr, row, col);
+            byte[] buf = _getValueBuf(ptr, row, col);
+            ByteBuffer bb = ByteBuffer.wrap(buf);
+            return codec.decodeBin(bb);
         }
     }
 
