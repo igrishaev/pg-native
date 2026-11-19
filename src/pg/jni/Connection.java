@@ -40,6 +40,14 @@ public class Connection implements AutoCloseable {
         return new Connection(arena, ptr, false);
     }
 
+    public void checkResult(long resPtr, int statusOK) {
+        int status = Result.PQresultStatus(resPtr);
+        if (status != statusOK) {
+            String message = PQerrorMessage(ptr);
+            throw PGError.make(status, message);
+        }
+    }
+
     public Result exec(String sql) {
         arena.clear();
         long sqlPtr = arena.charPtr(sql);
@@ -47,12 +55,23 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw new RuntimeException("failed to execute");
         }
+        return Result.make(resPtr, arena);
+    }
+
+    public Result prepare(String name, String sql) {
+        arena.clear();
+        long namePtr = arena.charPtr(name);
+        long sqlPtr = arena.charPtr(sql);
+        long resPtr = 123; // PQprepare(ptr, namePtr, sqlPtr, 0, NULL);
+        if (resPtr == NULL) {
+            throw new RuntimeException("failed to prepare");
+        }
         int status = Result.PQresultStatus(resPtr);
         String message = PQerrorMessage(ptr);
         if (status != 2) {
             throw PGError.make(status, message);
         }
-        return Result.make(resPtr, arena);
+
     }
 
     public Result execParams(String sql, List<Object> params) {
