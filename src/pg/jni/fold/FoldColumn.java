@@ -6,13 +6,13 @@ import java.util.ArrayList;
 
 public class FoldColumn implements IFolder<FoldColumn.Acc, FoldColumn.Acc> {
 
+    public static class Acc extends ArrayList<Object> {}
+
     private final String column;
 
     public FoldColumn(String column) {
         this.column = column;
     }
-
-    public static class Acc extends ArrayList<Object> {}
 
     @Override
     public Acc init() {
