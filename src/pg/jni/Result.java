@@ -86,9 +86,13 @@ public class Result implements AutoCloseable {
     }
 
     public <Acc,Fin> Fin fold(IFolder<Acc,Fin> folder) {
+        int nRows = rowCount();
         Acc acc = folder.init();
-        Row row = new Row(1, null, null, null);
-        acc = folder.append(acc, row);
+        Row row = new Row(0, null, null, null, ptr);
+        for (int n = 0; n < nRows; n++) {
+            row.setRow(n);
+            acc = folder.append(acc, row);
+        }
         return folder.finalize(acc);
     }
 
