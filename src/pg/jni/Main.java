@@ -1,5 +1,7 @@
 package pg.jni;
 
+import pg.jni.fold.FoldDefault;
+
 import java.util.List;
 
 public class Main {
@@ -22,6 +24,9 @@ public class Main {
             System.out.println(st);
             System.out.println(res.status());
             System.out.println(res.getValue(0, 0));
+            var t = res.fold(FoldDefault.INSTANCE);
+            System.out.println(t);
+
 //            System.out.println(res.getValue(0, 0));
         }
     }

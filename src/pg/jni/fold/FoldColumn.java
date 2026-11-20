@@ -1,0 +1,32 @@
+package pg.jni.fold;
+
+import pg.jni.Row;
+
+import java.util.ArrayList;
+
+public class FoldColumn implements IFolder<FoldColumn.Acc, FoldColumn.Acc> {
+
+    private final String column;
+
+    public FoldColumn(String column) {
+        this.column = column;
+    }
+
+    public static class Acc extends ArrayList<Object> {}
+
+    @Override
+    public Acc init() {
+        return new Acc();
+    }
+
+    @Override
+    public Acc append(Acc acc, Row row) {
+        acc.add(row.getValue(column));
+        return acc;
+    }
+
+    @Override
+    public Acc finalize(Acc acc) {
+        return acc;
+    }
+}

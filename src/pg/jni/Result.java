@@ -2,6 +2,7 @@ package pg.jni;
 
 import pg.jni.codec.Codecs;
 import pg.jni.codec.ICodec;
+import pg.jni.fold.IFolder;
 
 import java.nio.ByteBuffer;
 
@@ -82,6 +83,13 @@ public class Result implements AutoCloseable {
             throw Err.error("wrong result status, expected: %s, got: %s, error: %s", statusOK, status, message);
         }
         return this;
+    }
+
+    public <Acc,Fin> Fin fold(IFolder<Acc,Fin> folder) {
+        Acc acc = folder.init();
+        Row row = new Row(1, null, null, null);
+        acc = folder.append(acc, row);
+        return folder.finalize(acc);
     }
 
     private static native String _getValueStr(long result, int row, int col);

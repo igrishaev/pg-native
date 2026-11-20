@@ -67,6 +67,7 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw Err.error("exec failure (NULL result), conn: %s, sql: %s", this, sql);
         }
+        // TODO: check update
         return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 
@@ -144,6 +145,7 @@ public class Connection implements AutoCloseable {
                 ptrFormats,
                 resultFormat
         );
+        // TODO: check update
         return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 

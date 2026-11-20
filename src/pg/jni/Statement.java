@@ -4,10 +4,8 @@ import pg.jni.enums.PGRES;
 
 public class Statement implements AutoCloseable {
 
-    private final static long NULL;
     static {
         Native.loadLib();
-        NULL = Native.getNull();
     }
 
     private final long connPtr;
