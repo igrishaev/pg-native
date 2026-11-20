@@ -7,8 +7,10 @@ import java.util.Arrays;
 
 public class Arena {
 
+    private static final long NULL;
     static {
         Native.loadLib();
+        NULL = Native.getNull();
     }
 
     private ByteBuffer bb;
@@ -18,12 +20,6 @@ public class Arena {
     private static final int SIZE_GROW = 1014;
     private static final int SIZE_LONG = 8;
     private static final int SIZE_INT = 4;
-    public static final long NULL;
-
-    private static native long getNull();
-    static {
-        NULL = getNull();
-    }
 
     private Arena(ByteBuffer bb, int size, long ptr) {
         this.bb = bb;

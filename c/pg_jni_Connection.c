@@ -2,11 +2,6 @@
 #include "macros.h"
 #include "libpq-fe.h"
 
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_getNull
-  (JNIEnv *env, jclass jcls) {
-    return (jlong) NULL;
-}
-
 JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1connect
   (JNIEnv *env, jclass jcls, jlong jptr) {
     return (jlong) PQconnectdb((char *) jptr);

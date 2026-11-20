@@ -15,14 +15,6 @@ extern "C" {
 #define pg_jni_Arena_SIZE_INT 4L
 /*
  * Class:     pg_jni_Arena
- * Method:    getNull
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_pg_jni_Arena_getNull
-  (JNIEnv *, jclass);
-
-/*
- * Class:     pg_jni_Arena
  * Method:    bbAddress
  * Signature: (Ljava/nio/ByteBuffer;)J
  */

@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     pg_jni_Connection
- * Method:    getNull
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_getNull
-  (JNIEnv *, jclass);
-
-/*
- * Class:     pg_jni_Connection
  * Method:    _connect
  * Signature: (J)J
  */

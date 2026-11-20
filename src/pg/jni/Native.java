@@ -37,6 +37,8 @@ public class Native {
         }
     }
 
+    public static native long getNull();
+
     static void loadLib() {
         System.load(libPath);
     }

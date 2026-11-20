@@ -7,8 +7,10 @@ import java.nio.ByteBuffer;
 
 public class Result implements AutoCloseable {
 
+    private final static long NULL;
     static {
         Native.loadLib();
+        NULL = Native.getNull();
     }
 
     private final long ptr;

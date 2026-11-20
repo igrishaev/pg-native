@@ -10,12 +10,10 @@ import java.util.List;
 
 public class Connection implements AutoCloseable {
 
-    private static native long getNull();
-
-    private static final long NULL;
+    private final static long NULL;
     static {
         Native.loadLib();
-        NULL = getNull();
+        NULL = Native.getNull();
     }
 
     private final Arena arena;
@@ -81,21 +79,14 @@ public class Connection implements AutoCloseable {
         long ptrName = arena.charPtr(name);
         long ptrSql = arena.charPtr(sql);
 
-        // TODO: check status
         resPtr = _prepare(ptr, ptrName, ptrSql, 0, NULL);
-        if (resPtr == NULL) {
-            throw new RuntimeException("failed to _prepare");
-        }
         try (Result r = Result.make(resPtr, ptr)) {
             r.checkStatus(PGRES.COMMAND_OK);
         }
 
-        resPtr = _describePrepared(ptr, ptrName);
-        if (resPtr == NULL) {
-            throw new RuntimeException("failed to _describePrepared");
-        }
         int nParams;
         int[] oids;
+        resPtr = _describePrepared(ptr, ptrName);
         try (Result r = Result.make(resPtr, ptr)) {
             r.checkStatus(PGRES.COMMAND_OK);
             nParams = r.nParams();
@@ -112,8 +103,9 @@ public class Connection implements AutoCloseable {
 
     public Result execPrepared(Statement st, List<Object> params) {
         int nParams = st.nParams();
-        if (nParams != params.size()) {
-            throw new RuntimeException("wrong params count");
+        int nParamsPassed = params.size();
+        if (nParams != nParamsPassed) {
+            throw Err.error("wrong parameters count, expected %s, passed %s", nParams, nParamsPassed);
         }
         int resultFormat = 1;
         int[] oids = st.oids();
@@ -152,10 +144,7 @@ public class Connection implements AutoCloseable {
                 ptrFormats,
                 resultFormat
         );
-        if (resPtr == NULL) {
-            throw new RuntimeException("failed to _execPrepared");
-        }
-        return Result.make(resPtr, ptr);
+        return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 
     private static native void _clear(long connPtr);

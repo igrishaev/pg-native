@@ -1,9 +1,13 @@
 package pg.jni;
 
+import pg.jni.enums.PGRES;
+
 public class Statement implements AutoCloseable {
 
+    private final static long NULL;
     static {
         Native.loadLib();
+        NULL = Native.getNull();
     }
 
     private final long connPtr;
@@ -47,11 +51,8 @@ public class Statement implements AutoCloseable {
         arena.clear();
         long namePtr = arena.charPtr(name);
         long resPtr = _closePrepared(connPtr, namePtr);
-        if (resPtr == Arena.NULL) {
-            throw new RuntimeException("aaa");
-        }
         try (Result r = Result.make(resPtr, connPtr)) {
-            System.out.println(r.status());
+            r.checkStatus(PGRES.COMMAND_OK);
         }
     }
 }
