@@ -22,6 +22,7 @@ JAVAFILES = \
 
 MODULES = \
 	$(C_PATH)/bytebuffer.c \
+	$(C_PATH)/pg_jni_Statement.c \
 	$(C_PATH)/pg_jni_Arena.c \
 	$(C_PATH)/pg_jni_Connection.c \
 	$(C_PATH)/pg_jni_Result.c \

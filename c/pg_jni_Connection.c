@@ -35,26 +35,25 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1exec
     return (jlong) PQexec(conn, (char *) jsql);
 }
 
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexecParams
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1execPrepared
   (JNIEnv *env, jclass jcls,
    jlong jconn,
-   jlong jcmd,
-   jint jnParams,
-   jlong jparamTypes,
-   jlong jparamValues,
-   jlong jparamLengths,
-   jlong jparamFormats,
-   jint jresultFormat) {
+   jlong ptrName,
+   jint nParams,
+   jlong ptrValues,
+   jlong ptrLengths,
+   jlong ptrFormats,
+   jint resultFormat
+) {
     PGconn *conn = (PGconn *) jconn;
-    return (jlong) PQexecParams(conn,
-                                (char *) jcmd,
-                                jnParams,
-                                (Oid *) jparamTypes,
-                                (char **) jparamValues,
-                                (int *) jparamLengths,
-                                (int *) jparamFormats,
-                                jresultFormat);
-
+    return (jlong) PQexecPrepared(conn,
+                                  (char *) ptrName,
+                                  nParams,
+                                  (char **) ptrValues,
+                                  (int *) ptrLengths,
+                                  (int *) ptrFormats,
+                                  resultFormat
+     );
 }
 
 JNIEXPORT void JNICALL Java_pg_jni_Connection_PQfinish

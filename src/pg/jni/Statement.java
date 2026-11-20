@@ -2,6 +2,10 @@ package pg.jni;
 
 public class Statement implements AutoCloseable {
 
+    static {
+        Native.loadLib();
+    }
+
     private final long connPtr;
     private final String name;
     private final String sql;

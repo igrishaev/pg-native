@@ -1,6 +1,6 @@
 package pg.jni;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -15,10 +15,13 @@ public class Main {
 //            System.out.println(res.getValue(0, 0));
 //        }
         try (Connection conn = Connection.make(connStr);
-             Statement st = conn.prepare("a1", "select $1::int4 as foo")
+             Statement st = conn.prepare("a1", "select $1::int4 as foo");
+             Result res = conn.execPrepared(st, List.of(99))
         ) {
             System.out.println(conn);
             System.out.println(st);
+            System.out.println(res.status());
+            System.out.println(res.getValue(0, 0));
 //            System.out.println(res.getValue(0, 0));
         }
     }

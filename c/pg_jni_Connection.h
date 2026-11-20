@@ -41,14 +41,6 @@ JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
 
 /*
  * Class:     pg_jni_Connection
- * Method:    PQexecParams
- * Signature: (JJIJJJJI)J
- */
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQexecParams
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jlong, jlong, jlong, jint);
-
-/*
- * Class:     pg_jni_Connection
  * Method:    PQfinish
  * Signature: (J)V
  */
