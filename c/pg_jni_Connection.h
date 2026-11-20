@@ -41,6 +41,14 @@ JNIEXPORT jstring JNICALL Java_pg_jni_Connection__1errorMessage
 
 /*
  * Class:     pg_jni_Connection
+ * Method:    _reset
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_pg_jni_Connection__1reset
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pg_jni_Connection
  * Method:    _exec
  * Signature: (JJ)J
  */

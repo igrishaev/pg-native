@@ -73,3 +73,9 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1describePrepared
     PGconn *conn = (PGconn *) jconn;
     return (jlong) PQdescribePrepared(conn, (char *) ptrName);
 }
+
+JNIEXPORT void JNICALL Java_pg_jni_Connection__1reset
+  (JNIEnv *env, jclass jcls, jlong jconn) {
+    PGconn *conn = (PGconn *) jconn;
+    PQreset(conn);
+}

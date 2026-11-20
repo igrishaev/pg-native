@@ -20,7 +20,6 @@ public class Connection implements AutoCloseable {
     private final long ptr;
     private boolean isClosed;
 
-
     private Connection(Arena arena, long ptr, boolean isClosed) {
         this.arena = arena;
         this.ptr = ptr;
@@ -32,16 +31,21 @@ public class Connection implements AutoCloseable {
     protected static native String _errorMessage(long connPtr);
 
     public static Connection make(String connInfo) {
-        Arena arena = Arena.make(64000);
+        Arena arena = Arena.make(Const.ARENA_SIZE);
         long ptr = _connect(arena.charPtr(connInfo));
         if (ptr == NULL) {
-            throw new RuntimeException("failed to connect");
+            throw Err.error("connection failure (NULL result)");
         }
         int status = _status(ptr);
         if (status != 0) {
             throw new RuntimeException("bad connection status: " + status);
         }
         return new Connection(arena, ptr, false);
+    }
+
+    public static native void _reset(long connPtr);
+    public void reset() {
+        _reset(ptr);
     }
 
 //    public void checkResult(long resPtr, int statusOK) {
