@@ -27,18 +27,17 @@ public class Connection implements AutoCloseable {
         this.isClosed = isClosed;
     }
 
-    private static native long PQconnectdb(long conninfo);
-    private static native int PQstatus(long conn);
-    protected static native String PQerrorMessage(long conn);
-    private static native void PQfinish(long ptr);
+    private static native long _connect(long connStringPtr);
+    private static native int _status(long connPtr);
+    protected static native String _errorMessage(long connPtr);
 
     public static Connection make(String connInfo) {
         Arena arena = Arena.make(64000);
-        long ptr = PQconnectdb(arena.charPtr(connInfo));
+        long ptr = _connect(arena.charPtr(connInfo));
         if (ptr == NULL) {
             throw new RuntimeException("failed to connect");
         }
-        int status = PQstatus(ptr);
+        int status = _status(ptr);
         if (status != 0) {
             throw new RuntimeException("bad connection status: " + status);
         }
@@ -151,11 +150,13 @@ public class Connection implements AutoCloseable {
         return Result.make(resPtr);
     }
 
+    private static native void _clear(long connPtr);
+
     @Override
     public void close() {
         if (!isClosed) {
             isClosed = true;
-            PQfinish(ptr);
+            _clear(ptr);
         }
     }
 }

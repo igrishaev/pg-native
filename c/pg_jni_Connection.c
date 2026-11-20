@@ -7,18 +7,18 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection_getNull
     return (jlong) NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQconnectdb
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1connect
   (JNIEnv *env, jclass jcls, jlong jptr) {
     return (jlong) PQconnectdb((char *) jptr);
 }
 
-JNIEXPORT jint JNICALL Java_pg_jni_Connection_PQstatus
+JNIEXPORT jint JNICALL Java_pg_jni_Connection__1status
   (JNIEnv *env, jclass jcls, jlong jconn) {
     PGconn *conn = (PGconn *) jconn;
     return PQstatus(conn);
 }
 
-JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
+JNIEXPORT jstring JNICALL Java_pg_jni_Connection__1errorMessage
   (JNIEnv *env, jclass jcls, jlong jconn) {
     PGconn *conn = (PGconn *) jconn;
     char *msg = PQerrorMessage(conn);
@@ -56,7 +56,7 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1execPrepared
      );
 }
 
-JNIEXPORT void JNICALL Java_pg_jni_Connection_PQfinish
+JNIEXPORT void JNICALL Java_pg_jni_Connection__1clear
   (JNIEnv *env, jclass jcls, jlong jconn) {
     PGconn *conn = (PGconn *) jconn;
     PQfinish(conn);

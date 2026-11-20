@@ -17,34 +17,26 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection_getNull
 
 /*
  * Class:     pg_jni_Connection
- * Method:    PQconnectdb
+ * Method:    _connect
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_pg_jni_Connection_PQconnectdb
+JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1connect
   (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     pg_jni_Connection
- * Method:    PQstatus
+ * Method:    _status
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_pg_jni_Connection_PQstatus
+JNIEXPORT jint JNICALL Java_pg_jni_Connection__1status
   (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     pg_jni_Connection
- * Method:    PQerrorMessage
+ * Method:    _errorMessage
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_pg_jni_Connection_PQerrorMessage
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     pg_jni_Connection
- * Method:    PQfinish
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_pg_jni_Connection_PQfinish
+JNIEXPORT jstring JNICALL Java_pg_jni_Connection__1errorMessage
   (JNIEnv *, jclass, jlong);
 
 /*
@@ -78,6 +70,14 @@ JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1describePrepared
  */
 JNIEXPORT jlong JNICALL Java_pg_jni_Connection__1execPrepared
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jlong, jlong, jint);
+
+/*
+ * Class:     pg_jni_Connection
+ * Method:    _clear
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_pg_jni_Connection__1clear
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }
