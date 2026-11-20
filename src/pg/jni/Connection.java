@@ -2,6 +2,7 @@ package pg.jni;
 
 import pg.jni.codec.Codecs;
 import pg.jni.codec.ICodec;
+import pg.jni.enums.CONNECTION;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -20,15 +21,23 @@ public class Connection implements AutoCloseable {
     private final long ptr;
     private boolean isClosed;
 
-    private Connection(Arena arena, long ptr, boolean isClosed) {
-        this.arena = arena;
+    private Connection(long ptr, Arena arena, boolean isClosed) {
         this.ptr = ptr;
+        this.arena = arena;
         this.isClosed = isClosed;
     }
 
     private static native long _connect(long connStringPtr);
+
     private static native int _status(long connPtr);
-    protected static native String _errorMessage(long connPtr);
+    public int status() {
+        return _status(ptr);
+    }
+
+    private static native String _errorMessage(long connPtr);
+    public String errorMessage() {
+        return _errorMessage(ptr);
+    }
 
     public static Connection make(String connInfo) {
         Arena arena = Arena.make(Const.ARENA_SIZE);
@@ -36,11 +45,14 @@ public class Connection implements AutoCloseable {
         if (ptr == NULL) {
             throw Err.error("connection failure (NULL result)");
         }
-        int status = _status(ptr);
-        if (status != 0) {
-            throw new RuntimeException("bad connection status: " + status);
+        Connection conn = new Connection(ptr, arena, false);
+        int status = conn.status();
+        if (status != CONNECTION.OK) {
+            String message = conn.errorMessage();
+            conn.close();
+            throw Err.error("bad connection status: %s, message: %s", status, message);
         }
-        return new Connection(arena, ptr, false);
+        return conn;
     }
 
     public static native void _reset(long connPtr);
@@ -62,8 +74,9 @@ public class Connection implements AutoCloseable {
         long sqlPtr = arena.charPtr(sql);
         long resPtr = _exec(ptr, sqlPtr);
         if (resPtr == NULL) {
-            throw new RuntimeException("failed to execute");
+            throw Err.error("exec failure (NULL result), conn: %s, sql: %s", this, sql);
         }
+        // TODO check status
         return Result.make(resPtr);
     }
 
@@ -71,13 +84,12 @@ public class Connection implements AutoCloseable {
     private native static long _describePrepared(long conn, long ptrName);
 
     public Statement prepare(String name, String sql) {
-
         long resPtr;
-
         arena.clear();
         long ptrName = arena.charPtr(name);
         long ptrSql = arena.charPtr(sql);
 
+        // TODO: check status
         resPtr = _prepare(ptr, ptrName, ptrSql, 0, NULL);
         if (resPtr == NULL) {
             throw new RuntimeException("failed to _prepare");

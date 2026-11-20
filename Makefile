@@ -4,29 +4,9 @@ SHARED_LIB = resources/$(shell java src/pg/jni/OS.java)
 SRC_PATH = src/pg/jni
 C_PATH = c
 
-JAVAFILES = \
-	$(SRC_PATH)/codec/BOOL.java \
-	$(SRC_PATH)/codec/INT4.java \
-	$(SRC_PATH)/codec/TEXT.java \
-	$(SRC_PATH)/codec/ACodec.java \
-	$(SRC_PATH)/codec/ICodec.java \
-	$(SRC_PATH)/codec/Codecs.java \
-	$(SRC_PATH)/Statement.java \
-	$(SRC_PATH)/Const.java \
-	$(SRC_PATH)/PGError.java \
-	$(SRC_PATH)/Err.java \
-	$(SRC_PATH)/OS.java \
-	$(SRC_PATH)/Native.java \
-	$(SRC_PATH)/Arena.java \
-	$(SRC_PATH)/Connection.java \
-	$(SRC_PATH)/Result.java \
+JAVAFILES = $(shell find $(SRC_PATH) -name '*.java')
 
-MODULES = \
-	$(C_PATH)/pg_jni_Statement.c \
-	$(C_PATH)/pg_jni_Arena.c \
-	$(C_PATH)/pg_jni_Connection.c \
-	$(C_PATH)/pg_jni_Result.c \
-
+MODULES = $(shell find $(C_PATH) -name '*.c')
 OBJECTS = $(MODULES:.c=.o)
 
 JAVA_HOME ?= $(error Please specify JAVA_HOME)
