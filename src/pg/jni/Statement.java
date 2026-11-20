@@ -50,7 +50,7 @@ public class Statement implements AutoCloseable {
         if (resPtr == Arena.NULL) {
             throw new RuntimeException("aaa");
         }
-        try (Result r = Result.make(resPtr)) {
+        try (Result r = Result.make(resPtr, connPtr)) {
             System.out.println(r.status());
         }
     }

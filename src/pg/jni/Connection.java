@@ -3,6 +3,7 @@ package pg.jni;
 import pg.jni.codec.Codecs;
 import pg.jni.codec.ICodec;
 import pg.jni.enums.CONNECTION;
+import pg.jni.enums.PGRES;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -34,7 +35,7 @@ public class Connection implements AutoCloseable {
         return _status(ptr);
     }
 
-    private static native String _errorMessage(long connPtr);
+    protected static native String _errorMessage(long connPtr);
     public String errorMessage() {
         return _errorMessage(ptr);
     }
@@ -60,14 +61,6 @@ public class Connection implements AutoCloseable {
         _reset(ptr);
     }
 
-//    public void checkResult(long resPtr, int statusOK) {
-//        int status = Result.PQresultStatus(resPtr);
-//        if (status != statusOK) {
-//            String message = PQerrorMessage(ptr);
-//            throw PGError.make(status, message);
-//        }
-//    }
-
     private static native long _exec(long conn, long cmd);
     public Result exec(String sql) {
         arena.clear();
@@ -76,8 +69,7 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw Err.error("exec failure (NULL result), conn: %s, sql: %s", this, sql);
         }
-        // TODO check status
-        return Result.make(resPtr);
+        return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 
     private native static long _prepare(long conn, long ptrName, long ptrSql, int nParams, long ptrOids);
@@ -94,8 +86,8 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw new RuntimeException("failed to _prepare");
         }
-        try (Result r = Result.make(resPtr)) {
-            System.out.println(r.status());
+        try (Result r = Result.make(resPtr, ptr)) {
+            r.checkStatus(PGRES.COMMAND_OK);
         }
 
         resPtr = _describePrepared(ptr, ptrName);
@@ -104,8 +96,8 @@ public class Connection implements AutoCloseable {
         }
         int nParams;
         int[] oids;
-        try (Result r = Result.make(resPtr)) {
-            System.out.println(r.status());
+        try (Result r = Result.make(resPtr, ptr)) {
+            r.checkStatus(PGRES.COMMAND_OK);
             nParams = r.nParams();
             oids = new int[nParams];
             for (int i = 0; i < nParams; i++) {
@@ -163,7 +155,7 @@ public class Connection implements AutoCloseable {
         if (resPtr == NULL) {
             throw new RuntimeException("failed to _execPrepared");
         }
-        return Result.make(resPtr);
+        return Result.make(resPtr, ptr);
     }
 
     private static native void _clear(long connPtr);

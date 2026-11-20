@@ -12,15 +12,20 @@ public class Result implements AutoCloseable {
     }
 
     private final long ptr;
+    private final long connPtr;
     private boolean isClosed;
 
-    private Result(long ptr, boolean isClosed) {
+    private Result(long ptr, long connPtr, boolean isClosed) {
         this.ptr = ptr;
+        this.connPtr = connPtr;
         this.isClosed = isClosed;
     }
 
-    public static Result make(long ptr) {
-        return new Result(ptr, false);
+    public static Result make(long ptr, long connPtr) {
+        if (ptr == NULL) {
+            throw Err.error("result has failed (got NULL)");
+        }
+        return new Result(ptr, connPtr, false);
     }
 
     private static native int _status(long result);
@@ -66,6 +71,15 @@ public class Result implements AutoCloseable {
     private static native int _isNull(long result, int row, int col);
     public int isNull(int row, int col) {
         return _isNull(ptr, row, col);
+    }
+
+    public Result checkStatus(int statusOK) {
+        int status = status();
+        if (status != statusOK) {
+            String message = Connection._errorMessage(connPtr);
+            throw Err.error("wrong result status, expected: %s, got: %s, error: %s", statusOK, status, message);
+        }
+        return this;
     }
 
     private static native String _getValueStr(long result, int row, int col);
