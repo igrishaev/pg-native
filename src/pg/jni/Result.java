@@ -5,8 +5,9 @@ import pg.jni.codec.ICodec;
 import pg.jni.fold.IFolder;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
-public class Result implements AutoCloseable {
+public class Result implements AutoCloseable, Iterable<Row> {
 
     private final static long NULL;
     static {
@@ -86,11 +87,8 @@ public class Result implements AutoCloseable {
     }
 
     public <Acc,Fin> Fin fold(IFolder<Acc,Fin> folder) {
-        int nRows = rowCount();
         Acc acc = folder.init();
-        Row row = new Row(0, null, null, null, ptr);
-        for (int n = 0; n < nRows; n++) {
-            row.setRow(n);
+        for (Row row: this) {
             acc = folder.append(acc, row);
         }
         return folder.finalize(acc);
@@ -99,14 +97,11 @@ public class Result implements AutoCloseable {
     private static native String _getValueStr(long result, int row, int col);
     private static native byte[] _getValueBuf(long result, int row, int col);
 
-    public Object getValue(int row, int col) {
+    public Object getValue(int row, int col, int type, int format) {
         final int isNull = isNull(row, col);
         if (isNull == 1) {
             return null;
         }
-        // TODO: cache
-        final int format = colFormat(col);
-        final int type = colType(col);
         final ICodec codec = Codecs.get(type);
         if (codec == null) {
             throw Err.error("unsupported postgres type: %s", type);
@@ -128,5 +123,24 @@ public class Result implements AutoCloseable {
             isClosed = true;
             _clear(ptr);
         }
+    }
+
+    @Override
+    public Iterator<Row> iterator() {
+        return new Iterator<>() {
+            private final int nRows = rowCount();
+            private int i = 0;
+            private final Row row = Row.make(Result.this);
+            @Override
+            public boolean hasNext() {
+                return i < nRows;
+            }
+            @Override
+            public Row next() {
+                row.setRow(i);
+                i++;
+                return row;
+            }
+        };
     }
 }

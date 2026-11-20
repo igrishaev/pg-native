@@ -121,9 +121,9 @@ public class Connection implements AutoCloseable {
         int oid;
         for (int i = 0; i < nParams; i++) {
             format = 1;
-            param = params.get(i); // TODO check
+            param = params.get(i);
             oid = oids[i];
-            codec = Codecs.get(oid);
+            codec = Codecs.get(oid); // TODO: check
             ByteBuffer bb = codec.encodeBin(param);
             buf = bb.array();
             len = buf.length;
@@ -145,7 +145,7 @@ public class Connection implements AutoCloseable {
                 ptrFormats,
                 resultFormat
         );
-        // TODO: check update
+        // TODO: check update (no rows)
         return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 
