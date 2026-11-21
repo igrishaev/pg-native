@@ -1,6 +1,6 @@
 (ns pg.jni.core
   (:import
-   (java.util List)
+   (java.util List Map)
    (pg.jni Connection Statement))
   (:use criterium.core))
 
@@ -44,4 +44,6 @@ from
   (with-open [conn (connect info)
               st (prepare conn "foo" QUERY_SELECT_RANDOM_COMPLEX)]
     (quick-bench
-        (exec-prepared conn st []))))
+        (let [rows (exec-prepared conn st [])]
+          (doseq [^Map row rows]
+            (.put row "foo" 2))))))
