@@ -24,7 +24,7 @@ CLASSES_DIR = target/production/pg-native
 sync-resources:
 	cp resources/* $(CLASSES_DIR)/
 
-.phony: clear
+.PHONY: clear
 clear:
 	find . -name '*.log'     -delete
 	find . -name '*.o'       -delete
@@ -33,6 +33,7 @@ clear:
 
 headers:
 	javac -Xlint:deprecation -h $(C_PATH) $(JAVAFILES)
+	find . -name '*.class'   -delete
 
 PG_INC = $(shell pg_config --includedir)
 PG_LIB = $(shell pg_config --libdir)
