@@ -4,6 +4,7 @@ import pg.jni.codec.Codecs;
 import pg.jni.codec.ICodec;
 import pg.jni.enums.CONNECTION;
 import pg.jni.enums.PGRES;
+import pg.jni.fold.FoldDefault;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -60,15 +61,14 @@ public class Connection implements AutoCloseable {
     }
 
     private static native long _exec(long conn, long cmd);
-    public Result exec(String sql) {
+    public FoldDefault.Acc exec(String sql) {
         arena.clear();
         long sqlPtr = arena.charPtr(sql);
         long resPtr = _exec(ptr, sqlPtr);
-        if (resPtr == NULL) {
-            throw Err.error("exec failure (NULL result), conn: %s, sql: %s", this, sql);
+        try (Result res = Result.make(resPtr, ptr)) {
+            res.checkStatus(PGRES.TUPLES_OK);
+            return res.fold(FoldDefault.INSTANCE);
         }
-        // TODO: check update
-        return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
     }
 
     private native static long _prepare(long conn, long ptrName, long ptrSql, int nParams, long ptrOids);
@@ -102,7 +102,7 @@ public class Connection implements AutoCloseable {
 
     private native static long _execPrepared(long conn, long ptrName, int nParams, long ptrValues, long ptrLengths, long ptrFormats, int resultFormat);
 
-    public Result execPrepared(Statement st, List<Object> params) {
+    public FoldDefault.Acc execPrepared(Statement st, List<Object> params) {
         int nParams = st.nParams();
         int nParamsPassed = params.size();
         if (nParams != nParamsPassed) {
@@ -145,8 +145,11 @@ public class Connection implements AutoCloseable {
                 ptrFormats,
                 resultFormat
         );
-        // TODO: check update (no rows)
-        return Result.make(resPtr, ptr).checkStatus(PGRES.TUPLES_OK);
+        try (Result res = Result.make(resPtr, ptr)) {
+            res.checkStatus(PGRES.TUPLES_OK);
+            return res.fold(FoldDefault.INSTANCE);
+
+        }
     }
 
     private static native void _clear(long connPtr);
