@@ -42,3 +42,6 @@ LIBS = -lpq
 
 $(SHARED_LIB): $(OBJECTS)
 	$(CC) $(CFLAGS) $(LIBS) -shared -o $@ $(OBJECTS)
+
+repl:
+	lein with-profile +test repl

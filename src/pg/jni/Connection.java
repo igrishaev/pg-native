@@ -148,7 +148,6 @@ public class Connection implements AutoCloseable {
         try (Result res = Result.make(resPtr, ptr)) {
             res.checkStatus(PGRES.TUPLES_OK);
             return res.fold(FoldDefault.INSTANCE);
-
         }
     }
 
