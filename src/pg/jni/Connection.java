@@ -5,6 +5,7 @@ import pg.jni.codec.ICodec;
 import pg.jni.enums.CONNECTION;
 import pg.jni.enums.PGRES;
 import pg.jni.fold.FoldDefault;
+import pg.jni.fold.IFolder;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -61,13 +62,19 @@ public class Connection implements AutoCloseable {
     }
 
     private static native long _exec(long conn, long cmd);
-    public FoldDefault.Acc exec(String sql) {
+
+    @SuppressWarnings("unused")
+    public <Acc,Fin> FoldDefault.Acc exec(String sql) {
+        return exec(sql, FoldDefault.INSTANCE);
+    }
+
+    public <Acc,Fin> Fin exec(String sql, IFolder<Acc,Fin> folder) {
         arena.clear();
         long sqlPtr = arena.charPtr(sql);
         long resPtr = _exec(ptr, sqlPtr);
         try (Result res = Result.make(resPtr, ptr)) {
             res.checkStatus(PGRES.TUPLES_OK);
-            return res.fold(FoldDefault.INSTANCE);
+            return res.fold(folder);
         }
     }
 
@@ -102,7 +109,16 @@ public class Connection implements AutoCloseable {
 
     private native static long _execPrepared(long conn, long ptrName, int nParams, long ptrValues, long ptrLengths, long ptrFormats, int resultFormat);
 
+    @SuppressWarnings("unused")
+    public FoldDefault.Acc execPrepared(Statement st) {
+        return execPrepared(st, List.of(), FoldDefault.INSTANCE);
+    }
+
     public FoldDefault.Acc execPrepared(Statement st, List<Object> params) {
+        return execPrepared(st, params, FoldDefault.INSTANCE);
+    }
+
+    public <Acc,Fin> Fin execPrepared(Statement st, List<Object> params, IFolder<Acc,Fin> folder) {
         int nParams = st.nParams();
         int nParamsPassed = params.size();
         if (nParams != nParamsPassed) {
@@ -147,7 +163,7 @@ public class Connection implements AutoCloseable {
         );
         try (Result res = Result.make(resPtr, ptr)) {
             res.checkStatus(PGRES.TUPLES_OK);
-            return res.fold(FoldDefault.INSTANCE);
+            return res.fold(folder);
         }
     }
 

@@ -33,7 +33,7 @@ clear:
 
 headers:
 	javac -Xlint:deprecation -h $(C_PATH) $(JAVAFILES)
-	find . -name '*.class'   -delete
+	find src -name '*.class' -delete
 
 PG_INC = $(shell pg_config --includedir)
 PG_LIB = $(shell pg_config --libdir)
